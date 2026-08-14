@@ -1,0 +1,9 @@
+{
+  "abogado": ["abogada", "abogacia", "juridico", "juridica", "asesoria legal", "asesor legal", "letrado", "derecho"],
+  "procurador": ["procuradora", "procuracion", "juridico", "juridica", "derecho", "legal"],
+  "programador": ["programadora", "desarrollador", "desarrolladora", "developer", "desarrollo de software", "software", "backend", "frontend", "full stack", "fullstack"],
+  "sistemas": ["informatica", "computacion", "tecnologia de la informacion", "software", "it"],
+  "ciberseguridad": ["cybersecurity", "seguridad informatica", "seguridad de la informacion", "soc", "blue team", "analista de seguridad"],
+  "ingenieria": ["ingeniero", "ingeniera"],
+  "estudiante de ingenieria": ["estudiantes de ingenieria", "pasante de ingenieria", "pasantia", "pasante", "estudiante avanzado", "carrera en curso", "trainee", "becario"]
+}

@@ -1,0 +1,2 @@
+"""Abstracciones de persistencia intercambiables."""
+
