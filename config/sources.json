@@ -1,0 +1,41 @@
+[
+  {
+    "id": "empleo_publico_nacion",
+    "nombre": "Cartelera Central de Empleo Público",
+    "organismo": "Administración Pública Nacional",
+    "nivel": "Nacional",
+    "provincia": null,
+    "url": "https://www.argentina.gob.ar/jefatura/gestion-y-empleo-publico/empleo-publico/busqueda-de-convocatorias",
+    "tipo": "empleo_publico",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "Requiere verificación manual de URL, robots.txt y método de extracción."
+  },
+  {
+    "id": "portal_empleo_nacion",
+    "nombre": "Portal Empleo",
+    "organismo": "Secretaría de Trabajo, Empleo y Seguridad Social",
+    "nivel": "Nacional",
+    "provincia": null,
+    "url": "https://www.portalempleo.gob.ar/",
+    "tipo": "empleo",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "Requiere verificación manual de alcance público y método de extracción."
+  },
+  {
+    "id": "boletin_oficial_nacion",
+    "nombre": "Boletín Oficial de la República Argentina",
+    "organismo": "Secretaría Legal y Técnica",
+    "nivel": "Nacional",
+    "provincia": null,
+    "url": "https://www.boletinoficial.gob.ar/",
+    "tipo": "boletin_oficial",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "Evaluar únicamente concursos y selecciones laborales; no indexar indiscriminadamente."
+  }
+]
