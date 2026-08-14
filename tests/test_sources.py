@@ -1,4 +1,4 @@
-from src.services.sources import cargar_fuentes
+from src.services.sources import cargar_fuentes, cargar_jurisdicciones
 
 
 def test_fuentes_judiciales_pendientes_no_inventan_url() -> None:
@@ -23,3 +23,20 @@ def test_argentina_gob_ar_es_la_unica_fuente_activa() -> None:
     activas = [fuente for fuente in cargar_fuentes() if fuente.estado == "active"]
 
     assert [fuente.id for fuente in activas] == ["argentina_gob_ar_convocatorias"]
+
+
+def test_registra_todas_las_jurisdicciones_argentinas() -> None:
+    jurisdicciones = cargar_jurisdicciones()
+
+    assert len(jurisdicciones) == 24
+    assert "Tucumán" in jurisdicciones
+    assert "Ciudad Autónoma de Buenos Aires" in jurisdicciones
+
+
+def test_concursar_y_fuentes_tucuman_permanecen_pendientes() -> None:
+    fuentes = {fuente.id: fuente for fuente in cargar_fuentes()}
+
+    assert fuentes["concursar_nacion"].url == "https://concursar.miportal.gob.ar/"
+    assert fuentes["concursar_nacion"].estado == "pending"
+    assert fuentes["poder_judicial_tucuman"].url is None
+    assert fuentes["ministerio_publico_fiscal_tucuman"].estado == "pending"

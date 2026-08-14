@@ -1,10 +1,20 @@
-"""Interfaz del buscador; la recolección se ejecuta por separado."""
+"""Interfaz Streamlit del buscador; la recolección permanece en servicios."""
+
+from datetime import datetime, timezone
 
 import streamlit as st
+
 from src.database.memory_repository import MemoriaRepository
-from src.services.search import MotorBusqueda
-from src.services.sources import cargar_fuentes
 from src.services.live_offers import consultar_ofertas_oficiales
+from src.services.search import MotorBusqueda
+from src.services.sources import cargar_fuentes, cargar_jurisdicciones
+from src.ui.components import (
+    aplicar_estilos,
+    mostrar_busquedas_rapidas,
+    mostrar_portada,
+    mostrar_tarjeta,
+)
+from src.ui.filters import filtrar_resultados, ordenar_resultados
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -13,122 +23,191 @@ def actualizar_ofertas_temporales():
     return consultar_ofertas_oficiales()
 
 
+def seleccionar_busqueda(consulta: str) -> None:
+    st.session_state.consulta_global = consulta
+
+
+def limpiar_filtros() -> None:
+    for clave in ("filtro_provincia", "filtro_tipo", "filtro_estado", "filtro_organismo"):
+        st.session_state[clave] = "Todas" if clave == "filtro_provincia" else "Todos"
+    st.session_state.orden_resultados = "Relevancia"
+
+
+def opciones(campo: str, ofertas) -> list[str]:
+    valores = {getattr(oferta, campo) for oferta in ofertas if getattr(oferta, campo)}
+    return sorted(valores)
+
+
 st.set_page_config(
-    page_title="Empleo Público Argentina",
+    page_title="Buscador de Trabajo | Fuentes oficiales",
     page_icon="🇦🇷",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
+aplicar_estilos()
+mostrar_portada()
 
-st.title("Buscador de Trabajo")
-st.subheader("Oportunidades publicadas en fuentes oficiales de Argentina")
+st.session_state.setdefault("ofertas", [])
+st.session_state.setdefault("consulta_global", "")
+st.session_state.setdefault("ultima_actualizacion", None)
 
 tab_busqueda, tab_fuentes, tab_acerca = st.tabs(
-    ["🔎 Buscar", "🏛️ Fuentes oficiales", "ℹ️ Acerca del proyecto"]
+    ["Buscar oportunidades", "Fuentes oficiales", "Acerca del proyecto"]
 )
 
 with tab_busqueda:
     fuentes_registradas = cargar_fuentes()
-    fuentes_activas = [
-        fuente for fuente in fuentes_registradas if fuente.estado == "active"
-    ]
-    estado_fuentes, estado_ofertas = st.columns(2)
-    estado_fuentes.metric("Fuentes activas", len(fuentes_activas))
-
-    if st.button("🔄 Actualizar ofertas oficiales", help="La consulta se cachea durante una hora."):
-        with st.spinner("Consultando convocatorias oficiales..."):
-            ofertas_nuevas, errores_fuente = actualizar_ofertas_temporales()
-        st.session_state.ofertas = ofertas_nuevas
-        if ofertas_nuevas:
-            st.success(f"Actualización completada: {len(ofertas_nuevas)} convocatorias consultadas.")
-        if errores_fuente:
-            st.warning(
-                f"{len(errores_fuente)} página(s) no pudieron consultarse. "
-                "Los demás resultados siguen disponibles."
-            )
+    fuentes_activas = [fuente for fuente in fuentes_registradas if fuente.estado == "active"]
 
     columna_busqueda, columna_boton = st.columns([5, 1], vertical_alignment="bottom")
     with columna_busqueda:
         consulta = st.text_input(
-            "🔎 ¿Qué trabajo estás buscando?",
+            "¿Qué trabajo estás buscando?",
             placeholder="Ej.: abogado, programador, ingeniería, administración...",
             key="consulta_global",
-            disabled=False,
             help="Escribí una palabra y presioná Enter, o utilizá el botón Buscar.",
         )
     with columna_boton:
-        st.button("Buscar", type="primary", use_container_width=True)
+        st.button("Buscar", type="primary", width="stretch")
 
-    if "ofertas" not in st.session_state:
-        st.session_state.ofertas = []
-    repositorio = MemoriaRepository(st.session_state.ofertas)
-    ofertas = repositorio.listar_ofertas()
-    estado_ofertas.metric("Ofertas recopiladas", len(ofertas))
+    mostrar_busquedas_rapidas(seleccionar_busqueda)
+
+    if st.button(
+        "🔄 Actualizar fuentes",
+        help="Consulta las fuentes oficiales y conserva los resultados temporalmente.",
+    ):
+        with st.spinner("Actualizando fuentes oficiales..."):
+            ofertas_nuevas, errores_fuente = actualizar_ofertas_temporales()
+        st.session_state.ofertas = ofertas_nuevas
+        st.session_state.ultima_actualizacion = datetime.now(timezone.utc)
+        if ofertas_nuevas:
+            st.success(
+                f"Actualización completada: {len(ofertas_nuevas)} convocatorias disponibles."
+            )
+        if errores_fuente:
+            st.warning(
+                "Algunas fuentes no pudieron actualizarse. "
+                "Los resultados disponibles siguen siendo consultables."
+            )
+
+    ofertas = MemoriaRepository(st.session_state.ofertas).listar_ofertas()
+    organismos = {oferta.organismo for oferta in ofertas if oferta.organismo}
+    ultima = st.session_state.ultima_actualizacion
+    metricas = st.columns(4)
+    metricas[0].metric("Oportunidades", len(ofertas))
+    metricas[1].metric("Organismos", len(organismos))
+    metricas[2].metric("Fuentes activas", len(fuentes_activas))
+    metricas[3].metric(
+        "Última actualización",
+        ultima.strftime("%d/%m · %H:%M") if ultima else "Pendiente",
+    )
+
     resultados = MotorBusqueda().buscar(consulta, ofertas)
+    with st.expander("Filtros y orden", expanded=False):
+        filtros = st.columns(5)
+        provincia = filtros[0].selectbox(
+            "Provincia", ["Todas", *opciones("provincia", ofertas)], key="filtro_provincia"
+        )
+        tipo = filtros[1].selectbox(
+            "Tipo", ["Todos", *opciones("tipo_convocatoria", ofertas)], key="filtro_tipo"
+        )
+        estado = filtros[2].selectbox(
+            "Estado", ["Todos", "Abierta", "Próxima", "Cerrada", "Sin fecha"], key="filtro_estado"
+        )
+        organismo = filtros[3].selectbox(
+            "Organismo", ["Todos", *opciones("organismo", ofertas)], key="filtro_organismo"
+        )
+        orden = filtros[4].selectbox(
+            "Ordenar por",
+            ["Relevancia", "Más recientes", "Cierre próximo"],
+            key="orden_resultados",
+        )
+        st.button("Limpiar filtros", on_click=limpiar_filtros)
+
+    resultados = filtrar_resultados(resultados, provincia, tipo, estado, organismo)
+    resultados = ordenar_resultados(resultados, orden)
+
     if consulta:
         directas = sum(resultado.tipo == "directa" for resultado in resultados)
-        st.subheader(f'Encontramos {len(resultados)} oportunidades para "{consulta}"')
-        st.caption(f"{directas} coincidencias directas · {len(resultados) - directas} relacionadas")
+        st.subheader(f'{len(resultados)} oportunidades para “{consulta}”')
+        st.caption(
+            f"{directas} coincidencias directas · "
+            f"{len(resultados) - directas} relacionadas"
+        )
     else:
-        st.subheader("Últimas convocatorias")
+        st.subheader("Oportunidades recientes")
+        st.caption("Actualizá las fuentes para consultar las publicaciones disponibles.")
 
     if not resultados:
         if consulta:
             st.info(
-                f'La búsqueda de "{consulta}" se ejecutó correctamente, pero todavía '
-                "no hay ofertas oficiales recopiladas para mostrar. Esto no significa "
-                "que no existan puestos: todavía no hay una fuente activa conectada."
+                f'🔍 No encontramos oportunidades para “{consulta}”. '
+                "Probá con otra palabra o limpiá los filtros. Si todavía no actualizaste "
+                "las fuentes, hacelo antes de buscar."
             )
         else:
             st.info(
-                "El buscador está habilitado. Escribí una profesión o palabra clave. "
-                "Las fuentes del primer lote todavía están pendientes de verificación."
+                "Todavía no hay oportunidades cargadas en esta sesión. "
+                "Usá “Actualizar fuentes” o probá una búsqueda rápida."
             )
     for resultado in resultados:
-        oferta = resultado.oferta
-        etiqueta = "🎯 Coincidencia directa" if resultado.tipo == "directa" else "🔎 Coincidencia relacionada"
-        with st.container(border=True):
-            st.caption(etiqueta)
-            st.subheader(oferta.titulo)
-            st.write(oferta.organismo or "Organismo no informado")
-            st.write(f"📍 {oferta.localidad or oferta.provincia or 'Ubicación no informada'}")
-            st.write(f"🏛 {oferta.nivel_gobierno or 'Nivel no informado'}")
-            st.write(f"⏳ Cierra: {oferta.fecha_cierre.strftime('%d/%m/%Y') if oferta.fecha_cierre else 'sin fecha informada'}")
-            if resultado.coincidencias:
-                st.caption("Coincidió por: " + " · ".join(resultado.coincidencias))
-            st.link_button("VER CONVOCATORIA OFICIAL", str(oferta.url_original))
-            st.caption(f"Fuente: {oferta.fuente}")
+        mostrar_tarjeta(resultado)
 
 with tab_fuentes:
     st.header("Fuentes oficiales")
     fuentes = cargar_fuentes()
+    activas = sum(fuente.estado == "active" for fuente in fuentes)
+    st.write(
+        f"La cobertura está preparada para **{len(cargar_jurisdicciones())} jurisdicciones**. "
+        f"Actualmente hay **{activas} fuente(s) activa(s)**."
+    )
+    etiquetas_estado = {
+        "active": "🟢 Activa",
+        "pending": "🟡 Pendiente",
+        "limited": "🟠 Limitada",
+        "disabled": "⚪ Deshabilitada",
+        "broken": "🔴 Error",
+    }
     st.dataframe(
         [
             {
                 "Fuente": fuente.nombre,
-                "Organismo": fuente.organismo,
-                "Jurisdicción": fuente.nivel,
-                "Método": fuente.metodo,
-                "Estado": fuente.estado,
-                "URL oficial": fuente.url or "Pendiente de verificación",
+                "Jurisdicción": fuente.provincia or fuente.nivel,
+                "Estado": etiquetas_estado.get(fuente.estado, fuente.estado),
+                "Última revisión": fuente.ultima_revision or "Sin datos",
+                "Enlace oficial": fuente.url,
             }
             for fuente in fuentes
         ],
+        column_config={
+            "Enlace oficial": st.column_config.LinkColumn(
+                "Enlace oficial", display_text="Abrir fuente ↗"
+            )
+        },
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )
-    st.warning("Las fuentes pendientes no se consultan hasta verificar URL, condiciones y estructura.")
+    st.caption(
+        "Las fuentes pendientes no se consultan hasta verificar su URL, condiciones "
+        "y estructura de publicación."
+    )
 
 with tab_acerca:
     st.header("Acerca del proyecto")
     st.write(
-        "Este proyecto reúne convocatorias y oportunidades laborales publicadas "
-        "en sitios oficiales argentinos. La información puede cambiar: verificá "
-        "siempre la convocatoria original antes de postularte."
+        "Buscador de Trabajo reúne oportunidades laborales y concursos publicados "
+        "en fuentes oficiales argentinas para que puedan consultarse desde un solo lugar."
+    )
+    st.info(
+        "La información puede cambiar. Verificá siempre requisitos, fechas y "
+        "condiciones en la publicación oficial antes de postularte."
+    )
+    st.caption(
+        "Este proyecto no pertenece al Gobierno argentino ni a los organismos listados."
     )
 
 st.divider()
 st.caption(
-    "Este sitio no pertenece al Gobierno argentino ni a los organismos listados. "
-    "La información se recopila de fuentes públicas oficiales. Verificá siempre "
-    "requisitos, fechas y condiciones en la publicación original."
+    "Información recopilada de fuentes públicas oficiales. "
+    "Verificá siempre la convocatoria original antes de postularte."
 )

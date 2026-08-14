@@ -1,5 +1,7 @@
 from datetime import date
 
+import pytest
+
 from src.models import OfertaEmpleo
 from src.services.search import MotorBusqueda, contiene_termino, normalizar_texto
 
@@ -60,3 +62,20 @@ def test_busqueda_vacia_muestra_mas_recientes() -> None:
         "", [oferta("Vieja", fecha_publicacion=date(2025, 1, 1)), oferta("Nueva", fecha_publicacion=date(2026, 1, 1))]
     )
     assert recientes[0].oferta.titulo == "Nueva"
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("abogado", "Profesional Jurídico"),
+        ("procurador", "Asesor legal"),
+        ("programador", "Desarrollador de software"),
+        ("estudiante de ingeniería", "Pasantía para estudiante avanzado"),
+        ("ciberseguridad", "Analista de seguridad informática"),
+        ("sistemas", "Especialista en informática"),
+    ],
+)
+def test_consultas_principales_encuentran_terminos_relacionados(
+    consulta: str, titulo: str
+) -> None:
+    assert MotorBusqueda().buscar(consulta, [oferta(titulo)])

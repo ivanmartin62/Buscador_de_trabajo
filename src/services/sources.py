@@ -34,6 +34,14 @@ def cargar_fuentes(ruta: Path | str = "config/sources.json") -> list[Fuente]:
         return [Fuente(**item) for item in json.load(archivo)]
 
 
+def cargar_jurisdicciones(
+    ruta: Path | str = "config/jurisdicciones.json",
+) -> list[str]:
+    """Carga las 23 provincias y CABA sin asociarles URLs no verificadas."""
+    with Path(ruta).open(encoding="utf-8") as archivo:
+        return [str(nombre) for nombre in json.load(archivo)]
+
+
 def cargar_estados(ruta: Path | str = "data/source_status.json") -> dict[str, EstadoFuente]:
     archivo_estado = Path(ruta)
     if not archivo_estado.exists():

@@ -13,6 +13,7 @@ fuentes oficiales argentinas y conserva siempre el enlace a la publicación orig
 - `src/services`: agregación, normalización y deduplicación.
 - `src/database`: interfaz de repositorio e implementaciones de persistencia.
 - `src/utils`: fechas, logging y utilidades compartidas.
+- `src/ui`: componentes visuales y filtros de presentación; no contiene scraping.
 - `tests`: pruebas unitarias; los parsers usan fixtures y no dependen de Internet.
 - `config`: inventario declarativo de fuentes y sinónimos del buscador.
 - `data`: reservado para estados o fixtures; la UI actual mantiene ofertas en memoria.

@@ -13,6 +13,19 @@
     "nota": "Primera integración con las páginas oficiales aportadas por el responsable del proyecto."
   },
   {
+    "id": "concursar_nacion",
+    "nombre": "CONCURSAR - Portal de Concursos Públicos",
+    "organismo": "Administración Pública Nacional",
+    "nivel": "Nacional",
+    "provincia": null,
+    "url": "https://concursar.miportal.gob.ar/",
+    "tipo": "concursos",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "URL aportada por el responsable. Verificar robots.txt y la API o endpoint usado por la aplicación antes de activarla."
+  },
+  {
     "id": "empleo_publico_nacion",
     "nombre": "Cartelera Central de Empleo Público",
     "organismo": "Administración Pública Nacional",
@@ -102,5 +115,44 @@
     "estado": "pending",
     "ultima_revision": null,
     "nota": "Verificar la sección oficial de concursos e ingreso antes de implementar un adaptador."
+  },
+  {
+    "id": "poder_judicial_tucuman",
+    "nombre": "Poder Judicial de Tucumán",
+    "organismo": "Poder Judicial de Tucumán",
+    "nivel": "Provincial",
+    "provincia": "Tucumán",
+    "url": null,
+    "tipo": "ingreso_y_concursos",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "Identificar la sección oficial específica de concursos e ingreso sin inventar URL."
+  },
+  {
+    "id": "ministerio_publico_fiscal_tucuman",
+    "nombre": "Ministerio Público Fiscal de Tucumán",
+    "organismo": "Ministerio Público Fiscal de Tucumán",
+    "nivel": "Provincial",
+    "provincia": "Tucumán",
+    "url": null,
+    "tipo": "ingreso_y_concursos",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "Verificar el portal oficial de concursos y convocatorias antes de implementar el adaptador."
+  },
+  {
+    "id": "ministerio_defensa_tucuman",
+    "nombre": "Ministerio Pupilar y de la Defensa de Tucumán",
+    "organismo": "Ministerio Pupilar y de la Defensa de Tucumán",
+    "nivel": "Provincial",
+    "provincia": "Tucumán",
+    "url": null,
+    "tipo": "ingreso_y_concursos",
+    "metodo": "pendiente_verificacion",
+    "estado": "pending",
+    "ultima_revision": null,
+    "nota": "Verificar la denominación, URL y sección oficial de concursos antes de activar."
   }
 ]

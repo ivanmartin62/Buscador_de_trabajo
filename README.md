@@ -139,6 +139,12 @@ El campo principal está habilitado y ejecuta la búsqueda al presionar Enter o 
 botón **Buscar**. Mientras no haya un scraper activo, acepta la consulta pero informa
 que todavía no existen ofertas oficiales recopiladas.
 
+La interfaz incluye búsquedas rápidas, métricas calculadas desde los datos reales,
+filtros secundarios por provincia, tipo, estado y organismo, tres criterios de orden
+y tarjetas con detalles desplegables. El tema visual está definido mediante la
+configuración oficial de Streamlit en `.streamlit/config.toml`; los componentes
+reutilizables viven en `src/ui` y delegan la búsqueda a `MotorBusqueda`.
+
 La recolección queda separada mediante:
 
 ```bash
@@ -153,6 +159,7 @@ la URL oficial, `robots.txt`, las condiciones y el formato real de publicación.
 | Fuente | Jurisdicción | Método | Estado |
 |---|---|---|---|
 | Convocatorias de Argentina.gob.ar aportadas al proyecto | Nacional | HTML semántico | `active` |
+| CONCURSAR | Nacional | API/endpoint pendiente de verificación | `pending` |
 | Cartelera Central de Empleo Público | Nacional | Pendiente de verificación | `pending` |
 | Portal Empleo | Nacional | Pendiente de verificación | `pending` |
 | Boletín Oficial | Nacional | Pendiente de evaluación selectiva | `pending` |
@@ -160,6 +167,9 @@ la URL oficial, `robots.txt`, las condiciones y el formato real de publicación.
 | Consejo de la Magistratura | Nacional | Pendiente de verificación | `pending` |
 | Ministerio Público Fiscal | Nacional | Pendiente de verificación | `pending` |
 | Ministerio Público de la Defensa | Nacional | Pendiente de verificación | `pending` |
+| Poder Judicial de Tucumán | Tucumán | Pendiente de verificación | `pending` |
+| Ministerio Público Fiscal de Tucumán | Tucumán | Pendiente de verificación | `pending` |
+| Ministerio Pupilar y de la Defensa de Tucumán | Tucumán | Pendiente de verificación | `pending` |
 
 El inventario está en `config/sources.json`. La primera integración consulta las
 páginas de convocatorias de Argentina.gob.ar aportadas al proyecto y conserva su
@@ -173,6 +183,12 @@ una hora para evitar solicitudes repetidas. Si una página contiene términos co
 la búsqueda `abogado` como coincidencia relacionada. Esta coincidencia ayuda a
 descubrir la convocatoria, pero el usuario siempre debe revisar los requisitos y el
 carácter interno o abierto del concurso en la fuente oficial.
+
+`config/jurisdicciones.json` registra las 23 provincias y CABA para ampliar la
+cobertura de forma uniforme. No se realiza un rastreo indiscriminado de toda la web:
+cada organismo provincial o municipal requiere una URL oficial comprobada y un
+adaptador probado. Los municipios se incorporarán gradualmente cuando posean un
+portal oficial estable.
 
 Una búsqueda sin resultados no demuestra que no haya convocatorias publicadas:
 significa que todavía no existe una fuente activa que haya aportado ofertas a la
