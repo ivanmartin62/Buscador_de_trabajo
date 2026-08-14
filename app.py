@@ -20,12 +20,17 @@ tab_busqueda, tab_fuentes, tab_acerca = st.tabs(
 )
 
 with tab_busqueda:
-    with st.form("busqueda", clear_on_submit=False):
+    columna_busqueda, columna_boton = st.columns([5, 1], vertical_alignment="bottom")
+    with columna_busqueda:
         consulta = st.text_input(
             "🔎 ¿Qué trabajo estás buscando?",
             placeholder="Ej.: abogado, programador, ingeniería, administración...",
+            key="consulta_global",
+            disabled=False,
+            help="Escribí una palabra y presioná Enter, o utilizá el botón Buscar.",
         )
-        st.form_submit_button("Buscar", type="primary")
+    with columna_boton:
+        st.button("Buscar", type="primary", use_container_width=True)
 
     if "ofertas" not in st.session_state:
         st.session_state.ofertas = []
@@ -40,11 +45,16 @@ with tab_busqueda:
         st.subheader("Últimas convocatorias")
 
     if not resultados:
-        st.info(
-            "Todavía no hay ofertas recopiladas que coincidan con la búsqueda. "
-            "Las fuentes del primer lote están pendientes de verificación técnica. "
-            "En esta etapa los resultados se mantendrán sólo en memoria."
-        )
+        if consulta:
+            st.info(
+                f'La búsqueda de "{consulta}" se ejecutó correctamente, pero todavía '
+                "no hay ofertas oficiales recopiladas para mostrar."
+            )
+        else:
+            st.info(
+                "El buscador está habilitado. Escribí una profesión o palabra clave. "
+                "Las fuentes del primer lote todavía están pendientes de verificación."
+            )
     for resultado in resultados:
         oferta = resultado.oferta
         etiqueta = "🎯 Coincidencia directa" if resultado.tipo == "directa" else "🔎 Coincidencia relacionada"

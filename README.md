@@ -135,6 +135,9 @@ persistencia más adelante sin reescribir la interfaz.
 Normaliza mayúsculas, acentos y puntuación, expande términos configurados en
 `config/synonyms.json` y ordena coincidencias directas y relacionadas por relevancia.
 Una consulta vacía muestra las convocatorias más recientes.
+El campo principal está habilitado y ejecuta la búsqueda al presionar Enter o el
+botón **Buscar**. Mientras no haya un scraper activo, acepta la consulta pero informa
+que todavía no existen ofertas oficiales recopiladas.
 
 La recolección queda separada mediante:
 
