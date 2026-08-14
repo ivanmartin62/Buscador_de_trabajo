@@ -12,7 +12,7 @@ class Fuente:
     organismo: str
     nivel: str
     provincia: str | None
-    url: str
+    url: str | None
     tipo: str
     metodo: str
     estado: str

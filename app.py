@@ -4,6 +4,13 @@ import streamlit as st
 from src.database.memory_repository import MemoriaRepository
 from src.services.search import MotorBusqueda
 from src.services.sources import cargar_fuentes
+from src.services.live_offers import consultar_ofertas_oficiales
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def actualizar_ofertas_temporales():
+    """Evita repetir solicitudes oficiales durante una hora."""
+    return consultar_ofertas_oficiales()
 
 
 st.set_page_config(
@@ -20,6 +27,25 @@ tab_busqueda, tab_fuentes, tab_acerca = st.tabs(
 )
 
 with tab_busqueda:
+    fuentes_registradas = cargar_fuentes()
+    fuentes_activas = [
+        fuente for fuente in fuentes_registradas if fuente.estado == "active"
+    ]
+    estado_fuentes, estado_ofertas = st.columns(2)
+    estado_fuentes.metric("Fuentes activas", len(fuentes_activas))
+
+    if st.button("🔄 Actualizar ofertas oficiales", help="La consulta se cachea durante una hora."):
+        with st.spinner("Consultando convocatorias oficiales..."):
+            ofertas_nuevas, errores_fuente = actualizar_ofertas_temporales()
+        st.session_state.ofertas = ofertas_nuevas
+        if ofertas_nuevas:
+            st.success(f"Actualización completada: {len(ofertas_nuevas)} convocatorias consultadas.")
+        if errores_fuente:
+            st.warning(
+                f"{len(errores_fuente)} página(s) no pudieron consultarse. "
+                "Los demás resultados siguen disponibles."
+            )
+
     columna_busqueda, columna_boton = st.columns([5, 1], vertical_alignment="bottom")
     with columna_busqueda:
         consulta = st.text_input(
@@ -36,6 +62,7 @@ with tab_busqueda:
         st.session_state.ofertas = []
     repositorio = MemoriaRepository(st.session_state.ofertas)
     ofertas = repositorio.listar_ofertas()
+    estado_ofertas.metric("Ofertas recopiladas", len(ofertas))
     resultados = MotorBusqueda().buscar(consulta, ofertas)
     if consulta:
         directas = sum(resultado.tipo == "directa" for resultado in resultados)
@@ -48,7 +75,8 @@ with tab_busqueda:
         if consulta:
             st.info(
                 f'La búsqueda de "{consulta}" se ejecutó correctamente, pero todavía '
-                "no hay ofertas oficiales recopiladas para mostrar."
+                "no hay ofertas oficiales recopiladas para mostrar. Esto no significa "
+                "que no existan puestos: todavía no hay una fuente activa conectada."
             )
         else:
             st.info(
@@ -81,7 +109,7 @@ with tab_fuentes:
                 "Jurisdicción": fuente.nivel,
                 "Método": fuente.metodo,
                 "Estado": fuente.estado,
-                "URL oficial": fuente.url,
+                "URL oficial": fuente.url or "Pendiente de verificación",
             }
             for fuente in fuentes
         ],

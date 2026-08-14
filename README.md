@@ -152,13 +152,31 @@ la URL oficial, `robots.txt`, las condiciones y el formato real de publicación.
 
 | Fuente | Jurisdicción | Método | Estado |
 |---|---|---|---|
+| Convocatorias de Argentina.gob.ar aportadas al proyecto | Nacional | HTML semántico | `active` |
 | Cartelera Central de Empleo Público | Nacional | Pendiente de verificación | `pending` |
 | Portal Empleo | Nacional | Pendiente de verificación | `pending` |
 | Boletín Oficial | Nacional | Pendiente de evaluación selectiva | `pending` |
+| Poder Judicial de la Nación | Nacional | Pendiente de verificación | `pending` |
+| Consejo de la Magistratura | Nacional | Pendiente de verificación | `pending` |
+| Ministerio Público Fiscal | Nacional | Pendiente de verificación | `pending` |
+| Ministerio Público de la Defensa | Nacional | Pendiente de verificación | `pending` |
 
-El inventario está en `config/sources.json`. En este lote no se activó ningún
-scraper: el entorno bloqueó con HTTP 403 la verificación externa y el proyecto no
-inventa endpoints, selectores ni datos.
+El inventario está en `config/sources.json`. La primera integración consulta las
+páginas de convocatorias de Argentina.gob.ar aportadas al proyecto y conserva su
+texto visible en memoria. El parser usa elementos HTML semánticos y siempre enlaza
+la publicación original. Las demás fuentes continúan pendientes porque el entorno
+bloqueó con HTTP 403 su verificación externa.
+
+La actualización se inicia con **Actualizar ofertas oficiales** y se cachea durante
+una hora para evitar solicitudes repetidas. Si una página contiene términos como
+`Abogacía`, `Derecho` o `estudiante avanzado`, el motor puede encontrarla mediante
+la búsqueda `abogado` como coincidencia relacionada. Esta coincidencia ayuda a
+descubrir la convocatoria, pero el usuario siempre debe revisar los requisitos y el
+carácter interno o abierto del concurso en la fuente oficial.
+
+Una búsqueda sin resultados no demuestra que no haya convocatorias publicadas:
+significa que todavía no existe una fuente activa que haya aportado ofertas a la
+memoria de la aplicación.
 
 Para comprobar las URLs registradas desde un entorno con red:
 
