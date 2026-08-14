@@ -125,10 +125,51 @@ oficial si ofrece API, JSON, RSS, HTML estático o contenido dinámico.
 - universidades nacionales y organismos descentralizados
 - provincias y Ciudad Autónoma de Buenos Aires
 
+## Buscador global
+
+La búsqueda se ejecuta sobre ofertas mantenidas temporalmente en memoria, no contra
+los sitios remotos ni sobre una base de datos. Streamlit conserva esa lista sólo
+durante la sesión activa; al reiniciar la aplicación se pierde. Esta decisión es
+intencional para la etapa actual y el contrato `Repository` permite agregar
+persistencia más adelante sin reescribir la interfaz.
+Normaliza mayúsculas, acentos y puntuación, expande términos configurados en
+`config/synonyms.json` y ordena coincidencias directas y relacionadas por relevancia.
+Una consulta vacía muestra las convocatorias más recientes.
+El campo principal está habilitado y ejecuta la búsqueda al presionar Enter o el
+botón **Buscar**. Mientras no haya un scraper activo, acepta la consulta pero informa
+que todavía no existen ofertas oficiales recopiladas.
+
+La recolección queda separada mediante:
+
+```bash
+python -m src.update_sources
+```
+
+El comando no consulta fuentes `pending`. Antes de activar un adaptador se verifican
+la URL oficial, `robots.txt`, las condiciones y el formato real de publicación.
+
+## Fuentes soportadas
+
+| Fuente | Jurisdicción | Método | Estado |
+|---|---|---|---|
+| Cartelera Central de Empleo Público | Nacional | Pendiente de verificación | `pending` |
+| Portal Empleo | Nacional | Pendiente de verificación | `pending` |
+| Boletín Oficial | Nacional | Pendiente de evaluación selectiva | `pending` |
+
+El inventario está en `config/sources.json`. En este lote no se activó ningún
+scraper: el entorno bloqueó con HTTP 403 la verificación externa y el proyecto no
+inventa endpoints, selectores ni datos.
+
+Para comprobar las URLs registradas desde un entorno con red:
+
+```bash
+python scripts/check_sources.py
+```
+
 ## Limitaciones actuales
 
-- La interfaz presenta el estado vacío y no consulta fuentes aún.
-- No existen actualización, filtros ni almacenamiento en esta etapa.
+- La memoria comienza vacía hasta activar el primer scraper verificado.
+- Las ofertas no se guardan: desaparecen cuando se reinicia la sesión o aplicación.
 - La calidad y disponibilidad dependerán de lo que publique cada organismo.
 - Un despliegue efímero no debe tratar SQLite como almacenamiento permanente.
 

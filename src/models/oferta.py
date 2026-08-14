@@ -10,6 +10,7 @@ class EstadoOferta(StrEnum):
     """Estados conocidos; `DESCONOCIDO` evita inferir información ausente."""
 
     ABIERTA = "abierta"
+    PROXIMA = "proxima"
     CERRADA = "cerrada"
     DESCONOCIDO = "desconocido"
 
@@ -37,9 +38,16 @@ class OfertaEmpleo(BaseModel):
     fecha_cierre: date | None = None
     requisitos: str | None = None
     profesion: str | None = None
+    carrera: str | None = None
+    especialidad: str | None = None
+    funciones: str | None = None
+    conocimientos: str | None = None
+    tecnologias: str | None = None
+    nivel_gobierno: str | None = None
     cantidad_vacantes: int | None = Field(default=None, ge=0)
     fuente: str = Field(min_length=1)
     url_original: HttpUrl
+    url_fuente: HttpUrl | None = None
     fecha_recoleccion: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
@@ -53,4 +61,3 @@ class OfertaEmpleo(BaseModel):
         if valor.tzinfo is None or valor.utcoffset() is None:
             raise ValueError("fecha_recoleccion debe incluir zona horaria")
         return valor
-

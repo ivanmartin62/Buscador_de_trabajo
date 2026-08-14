@@ -14,6 +14,8 @@ fuentes oficiales argentinas y conserva siempre el enlace a la publicación orig
 - `src/database`: interfaz de repositorio e implementaciones de persistencia.
 - `src/utils`: fechas, logging y utilidades compartidas.
 - `tests`: pruebas unitarias; los parsers usan fixtures y no dependen de Internet.
+- `config`: inventario declarativo de fuentes y sinónimos del buscador.
+- `data`: reservado para estados o fixtures; la UI actual mantiene ofertas en memoria.
 
 ## Convenciones
 
@@ -32,6 +34,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 streamlit run app.py
 pytest
+python -m src.update_sources
+python scripts/check_sources.py
 ```
 
 ## Agregar un scraper
@@ -46,4 +50,13 @@ pytest
 6. Hacer que los fallos de esa fuente no interrumpan las demás.
 7. Preservar la compatibilidad de los scrapers existentes y ejecutar `pytest`
    después de cualquier cambio relevante.
+8. No marcar una fuente como `active` hasta verificar URL, contenido, método y
+   condiciones. Una fuente sin verificar permanece `pending` y no se consulta.
 
+## Búsqueda y persistencia
+
+- `MotorBusqueda` trabaja exclusivamente sobre ofertas indexadas; nunca hace HTTP.
+- Mantener sinónimos en `config/synonyms.json`, no dentro de `app.py`.
+- La UI depende de `MemoriaRepository`, sin archivos ni SQL en esta etapa. Conservar
+  el contrato `Repository` para una persistencia futura.
+- Los resultados siempre conservan un enlace HTTP/HTTPS a la publicación oficial.
