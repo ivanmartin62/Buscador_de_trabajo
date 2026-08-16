@@ -1,0 +1,10 @@
+name: empleo-publico-argentina
+
+channels:
+  - defaults
+
+dependencies:
+  - python>=3.12,<3.15
+  - pip
+  - pip:
+      - -r requirements.txt
