@@ -20,10 +20,10 @@
     "provincia": null,
     "url": "https://concursar.miportal.gob.ar/",
     "tipo": "concursos",
-    "metodo": "pendiente_verificacion",
-    "estado": "pending",
-    "ultima_revision": null,
-    "nota": "URL aportada por el responsable. Verificar robots.txt y la API o endpoint usado por la aplicación antes de activarla."
+    "metodo": "portal_interactivo_sin_api_publica",
+    "estado": "limited",
+    "ultima_revision": "2026-08-16",
+    "nota": "El portal no ofrece una API pública confirmada. Se conserva el acceso oficial, pero no se automatiza autenticación ni navegación protegida."
   },
   {
     "id": "empleo_publico_nacion",

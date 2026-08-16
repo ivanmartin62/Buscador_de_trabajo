@@ -34,3 +34,15 @@ def test_app_muestra_filtros_y_metricas_reales() -> None:
         "Organismo",
         "Ordenar por",
     }
+
+
+def test_fuentes_distinguen_enlace_publico_de_integracion() -> None:
+    app = AppTest.from_file(APP).run(timeout=20)
+
+    assert not app.exception
+    assert "Uso en el buscador" in app.dataframe[0].value.columns
+    concursar = app.dataframe[0].value.loc[
+        app.dataframe[0].value["Fuente"] == "CONCURSAR - Portal de Concursos Públicos"
+    ].iloc[0]
+    assert concursar["Estado"] == "🟠 Limitada"
+    assert concursar["Uso en el buscador"] == "Aún no incluida"

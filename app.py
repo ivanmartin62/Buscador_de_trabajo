@@ -78,8 +78,9 @@ with tab_busqueda:
     ):
         with st.spinner("Actualizando fuentes oficiales..."):
             ofertas_nuevas, errores_fuente = actualizar_ofertas_temporales()
-        st.session_state.ofertas = ofertas_nuevas
-        st.session_state.ultima_actualizacion = datetime.now(timezone.utc)
+        if ofertas_nuevas:
+            st.session_state.ofertas = ofertas_nuevas
+            st.session_state.ultima_actualizacion = datetime.now(timezone.utc)
         if ofertas_nuevas:
             st.success(
                 f"Actualización completada: {len(ofertas_nuevas)} convocatorias disponibles."
@@ -88,6 +89,11 @@ with tab_busqueda:
             st.warning(
                 "Algunas fuentes no pudieron actualizarse. "
                 "Los resultados disponibles siguen siendo consultables."
+            )
+        if not ofertas_nuevas and errores_fuente:
+            st.info(
+                "No se reemplazaron los resultados anteriores porque ninguna fuente "
+                "respondió correctamente."
             )
 
     ofertas = MemoriaRepository(st.session_state.ofertas).listar_ofertas()
@@ -174,6 +180,9 @@ with tab_fuentes:
                 "Fuente": fuente.nombre,
                 "Jurisdicción": fuente.provincia or fuente.nivel,
                 "Estado": etiquetas_estado.get(fuente.estado, fuente.estado),
+                "Uso en el buscador": (
+                    "Incluida" if fuente.estado == "active" else "Aún no incluida"
+                ),
                 "Última revisión": fuente.ultima_revision or "Sin datos",
                 "Enlace oficial": fuente.url,
             }
@@ -189,7 +198,8 @@ with tab_fuentes:
     )
     st.caption(
         "Las fuentes pendientes no se consultan hasta verificar su URL, condiciones "
-        "y estructura de publicación."
+        "y estructura de publicación. Que un enlace se pueda abrir no significa que "
+        "sus concursos ya estén incluidos en el buscador."
     )
 
 with tab_acerca:
