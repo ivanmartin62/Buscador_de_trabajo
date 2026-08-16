@@ -1,12 +1,12 @@
 """Actualización manual de fuentes para el modo temporal sin base de datos."""
 
 from src.services.live_offers import consultar_ofertas_oficiales
-from src.services.sources import cargar_fuentes
+from src.services.sources import RegistroFuentes
 
 
 def main() -> int:
     """Consulta adaptadores activos y muestra un resumen sin persistir resultados."""
-    activas = [fuente for fuente in cargar_fuentes() if fuente.estado == "active"]
+    activas = RegistroFuentes.desde_archivo().activas()
     if not activas:
         print("0 fuentes activas")
         print("No hay fuentes verificadas para consultar.")

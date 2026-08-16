@@ -1,23 +1,10 @@
 """Componentes Streamlit reutilizables; no contienen scraping ni búsqueda."""
 
 from datetime import datetime
-from typing import Callable
-
 import streamlit as st
 
 from src.models import OfertaEmpleo
 from src.services.search import ResultadoBusqueda
-
-BUSQUEDAS_RAPIDAS = (
-    ("⚖️ Abogado", "abogado"),
-    ("💻 Programador", "programador"),
-    ("🎓 Ingeniería", "ingeniería"),
-    ("🖥️ Sistemas", "sistemas"),
-    ("🔐 Ciberseguridad", "ciberseguridad"),
-    ("📊 Administración", "administración"),
-    ("📦 Logística", "logística"),
-)
-
 
 def escapar_markdown(texto: str) -> str:
     """Muestra texto remoto como contenido, sin interpretar Markdown embebido."""
@@ -63,22 +50,6 @@ def mostrar_portada() -> None:
         """,
         unsafe_allow_html=True,
     )
-
-
-def mostrar_busquedas_rapidas(al_seleccionar: Callable[[str], None]) -> None:
-    st.caption("Probá una búsqueda rápida")
-    for inicio, fin in ((0, 4), (4, 7)):
-        columnas = st.columns(fin - inicio)
-        for columna, (etiqueta, consulta) in zip(
-            columnas, BUSQUEDAS_RAPIDAS[inicio:fin], strict=True
-        ):
-            columna.button(
-                etiqueta,
-                key=f"rapida_{consulta}",
-                width="stretch",
-                on_click=al_seleccionar,
-                args=(consulta,),
-            )
 
 
 def etiqueta_estado(oferta: OfertaEmpleo) -> str:

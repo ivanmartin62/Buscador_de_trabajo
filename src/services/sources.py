@@ -29,6 +29,30 @@ class EstadoFuente:
     error_message: str | None = None
 
 
+class RegistroFuentes:
+    """Catálogo central para consultar fuentes sin acoplar la UI al archivo JSON."""
+
+    def __init__(self, fuentes: list[Fuente]) -> None:
+        self._fuentes = list(fuentes)
+
+    @classmethod
+    def desde_archivo(
+        cls, ruta: Path | str = "config/sources.json"
+    ) -> "RegistroFuentes":
+        return cls(cargar_fuentes(ruta))
+
+    def listar(self) -> list[Fuente]:
+        return list(self._fuentes)
+
+    def activas(self) -> list[Fuente]:
+        return [fuente for fuente in self._fuentes if fuente.estado == "active"]
+
+    def obtener(self, identificador: str) -> Fuente | None:
+        return next(
+            (fuente for fuente in self._fuentes if fuente.id == identificador), None
+        )
+
+
 def cargar_fuentes(ruta: Path | str = "config/sources.json") -> list[Fuente]:
     with Path(ruta).open(encoding="utf-8") as archivo:
         return [Fuente(**item) for item in json.load(archivo)]

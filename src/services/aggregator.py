@@ -19,7 +19,12 @@ def recolectar(scrapers: list[BaseScraper]) -> tuple[list[OfertaEmpleo], list[Er
     errores: list[ErrorFuente] = []
     for scraper in scrapers:
         try:
-            ofertas.extend(scraper.get_offers())
+            logger.info("Consultando fuente %s", scraper.source_name)
+            ofertas_fuente = scraper.get_offers()
+            ofertas.extend(ofertas_fuente)
+            logger.info(
+                "%s: %d ofertas encontradas", scraper.source_name, len(ofertas_fuente)
+            )
         except Exception as error:  # frontera de aislamiento entre fuentes
             logger.exception("No fue posible consultar %s", scraper.source_name)
             errores.append(ErrorFuente(scraper.source_name, str(error)))

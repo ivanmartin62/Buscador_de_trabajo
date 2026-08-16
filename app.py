@@ -8,14 +8,14 @@ from src.database.memory_repository import MemoriaRepository
 from src.models import OfertaEmpleo
 from src.services.live_offers import consultar_ofertas_oficiales
 from src.services.search import MotorBusqueda
-from src.services.sources import cargar_fuentes, cargar_jurisdicciones
+from src.services.sources import RegistroFuentes, cargar_estados, cargar_jurisdicciones
 from src.ui.components import (
     aplicar_estilos,
-    mostrar_busquedas_rapidas,
     mostrar_portada,
     mostrar_tarjeta,
 )
 from src.ui.filters import filtrar_resultados, ordenar_resultados
+from src.utils.logging_config import configurar_logging
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -24,12 +24,14 @@ def actualizar_ofertas_temporales():
     return consultar_ofertas_oficiales()
 
 
-def seleccionar_busqueda(consulta: str) -> None:
-    st.session_state.consulta_global = consulta
-
-
 def limpiar_filtros() -> None:
-    for clave in ("filtro_provincia", "filtro_tipo", "filtro_estado", "filtro_organismo"):
+    for clave in (
+        "filtro_provincia",
+        "filtro_tipo",
+        "filtro_estado",
+        "filtro_organismo",
+        "filtro_nivel",
+    ):
         st.session_state[clave] = "Todas" if clave == "filtro_provincia" else "Todos"
     st.session_state.orden_resultados = "Relevancia"
 
@@ -45,6 +47,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+configurar_logging()
 aplicar_estilos()
 mostrar_portada()
 
@@ -57,21 +60,21 @@ tab_busqueda, tab_fuentes, tab_acerca = st.tabs(
 )
 
 with tab_busqueda:
-    fuentes_registradas = cargar_fuentes()
-    fuentes_activas = [fuente for fuente in fuentes_registradas if fuente.estado == "active"]
+    registro = RegistroFuentes.desde_archivo()
+    fuentes_activas = registro.activas()
 
     columna_busqueda, columna_boton = st.columns([5, 1], vertical_alignment="bottom")
     with columna_busqueda:
         consulta = st.text_input(
             "¿Qué trabajo estás buscando?",
-            placeholder="Ej.: abogado, programador, ingeniería, administración...",
+            placeholder=(
+                "Puesto, profesión, carrera, tecnología, organismo o palabra clave"
+            ),
             key="consulta_global",
             help="Escribí una palabra y presioná Enter, o utilizá el botón Buscar.",
         )
     with columna_boton:
         st.button("Buscar", type="primary", width="stretch")
-
-    mostrar_busquedas_rapidas(seleccionar_busqueda)
 
     if st.button(
         "🔄 Actualizar fuentes",
@@ -111,27 +114,35 @@ with tab_busqueda:
 
     resultados = MotorBusqueda().buscar(consulta, ofertas)
     with st.expander("Filtros y orden", expanded=False):
-        filtros = st.columns(5)
-        provincia = filtros[0].selectbox(
+        filtros_principales = st.columns(3)
+        provincia = filtros_principales[0].selectbox(
             "Provincia", ["Todas", *opciones("provincia", ofertas)], key="filtro_provincia"
         )
-        tipo = filtros[1].selectbox(
-            "Tipo", ["Todos", *opciones("tipo_convocatoria", ofertas)], key="filtro_tipo"
-        )
-        estado = filtros[2].selectbox(
-            "Estado", ["Todos", "Abierta", "Próxima", "Cerrada", "Sin fecha"], key="filtro_estado"
-        )
-        organismo = filtros[3].selectbox(
+        organismo = filtros_principales[1].selectbox(
             "Organismo", ["Todos", *opciones("organismo", ofertas)], key="filtro_organismo"
         )
-        orden = filtros[4].selectbox(
+        tipo = filtros_principales[2].selectbox(
+            "Tipo", ["Todos", *opciones("tipo_convocatoria", ofertas)], key="filtro_tipo"
+        )
+        filtros_secundarios = st.columns(3)
+        estado = filtros_secundarios[0].selectbox(
+            "Estado", ["Todos", "Abierta", "Próxima", "Cerrada", "Sin fecha"], key="filtro_estado"
+        )
+        nivel = filtros_secundarios[1].selectbox(
+            "Nivel",
+            ["Todos", *opciones("nivel_gobierno", ofertas)],
+            key="filtro_nivel",
+        )
+        orden = filtros_secundarios[2].selectbox(
             "Ordenar por",
             ["Relevancia", "Más recientes", "Cierre próximo"],
             key="orden_resultados",
         )
         st.button("Limpiar filtros", on_click=limpiar_filtros)
 
-    resultados = filtrar_resultados(resultados, provincia, tipo, estado, organismo)
+    resultados = filtrar_resultados(
+        resultados, provincia, tipo, estado, organismo, nivel
+    )
     resultados = ordenar_resultados(resultados, orden)
 
     if consulta:
@@ -155,15 +166,17 @@ with tab_busqueda:
         else:
             st.info(
                 "Todavía no hay oportunidades cargadas en esta sesión. "
-                "Usá “Actualizar fuentes” o probá una búsqueda rápida."
+                "Usá “Actualizar fuentes” para consultar las publicaciones disponibles."
             )
     for resultado in resultados:
         mostrar_tarjeta(resultado)
 
 with tab_fuentes:
     st.header("Fuentes oficiales")
-    fuentes = cargar_fuentes()
-    activas = sum(fuente.estado == "active" for fuente in fuentes)
+    registro = RegistroFuentes.desde_archivo()
+    fuentes = registro.listar()
+    estados_operativos = cargar_estados()
+    activas = len(registro.activas())
     st.write(
         f"La cobertura está preparada para **{len(cargar_jurisdicciones())} jurisdicciones**. "
         f"Actualmente hay **{activas} fuente(s) activa(s)**."
@@ -175,16 +188,34 @@ with tab_fuentes:
         "disabled": "⚪ Deshabilitada",
         "broken": "🔴 Error",
     }
+    etiquetas_metodo = {
+        "api": "API",
+        "json": "JSON",
+        "rss": "RSS",
+        "xml": "XML",
+        "html": "Página web",
+        "html_semantico": "Página web",
+        "javascript": "Aplicación web",
+        "portal_interactivo_sin_api_publica": "Portal interactivo",
+        "pendiente_verificacion": "Por verificar",
+    }
     st.dataframe(
         [
             {
                 "Fuente": fuente.nombre,
+                "Organismo": fuente.organismo,
                 "Jurisdicción": fuente.provincia or fuente.nivel,
+                "Método": etiquetas_metodo.get(fuente.metodo, fuente.metodo),
                 "Estado": etiquetas_estado.get(fuente.estado, fuente.estado),
                 "Uso en el buscador": (
                     "Incluida" if fuente.estado == "active" else "Aún no incluida"
                 ),
                 "Última revisión": fuente.ultima_revision or "Sin datos",
+                "Ofertas": (
+                    estados_operativos[fuente.id].number_of_offers
+                    if fuente.id in estados_operativos
+                    else "Sin datos"
+                ),
                 "Enlace oficial": fuente.url,
             }
             for fuente in fuentes

@@ -10,6 +10,7 @@ def resultado(
     *,
     provincia: str | None = None,
     organismo: str | None = None,
+    nivel_gobierno: str | None = None,
     fecha_publicacion: date | None = None,
     fecha_cierre: date | None = None,
 ) -> ResultadoBusqueda:
@@ -17,6 +18,7 @@ def resultado(
         titulo=titulo,
         provincia=provincia,
         organismo=organismo,
+        nivel_gobierno=nivel_gobierno,
         fecha_publicacion=fecha_publicacion,
         fecha_cierre=fecha_cierre,
         fuente="Fuente oficial",
@@ -27,12 +29,20 @@ def resultado(
 
 def test_filtros_secundarios_reducen_resultados() -> None:
     resultados = [
-        resultado("Abogado", provincia="Tucumán", organismo="Poder Judicial"),
+        resultado(
+            "Abogado",
+            provincia="Tucumán",
+            organismo="Poder Judicial",
+            nivel_gobierno="Provincial",
+        ),
         resultado("Programador", provincia="Córdoba", organismo="Municipio"),
     ]
 
     filtrados = filtrar_resultados(
-        resultados, provincia="Tucumán", organismo="Poder Judicial"
+        resultados,
+        provincia="Tucumán",
+        organismo="Poder Judicial",
+        nivel="Provincial",
     )
 
     assert [item.oferta.titulo for item in filtrados] == ["Abogado"]

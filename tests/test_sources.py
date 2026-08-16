@@ -1,4 +1,4 @@
-from src.services.sources import cargar_fuentes, cargar_jurisdicciones
+from src.services.sources import RegistroFuentes, cargar_fuentes, cargar_jurisdicciones
 
 
 def test_fuentes_judiciales_pendientes_no_inventan_url() -> None:
@@ -41,3 +41,13 @@ def test_concursar_limitada_y_fuentes_tucuman_pendientes() -> None:
     assert fuentes["concursar_nacion"].metodo == "portal_interactivo_sin_api_publica"
     assert fuentes["poder_judicial_tucuman"].url is None
     assert fuentes["ministerio_publico_fiscal_tucuman"].estado == "pending"
+
+
+def test_registro_central_expone_solo_fuentes_activas() -> None:
+    registro = RegistroFuentes.desde_archivo()
+
+    assert [fuente.id for fuente in registro.activas()] == [
+        "argentina_gob_ar_convocatorias"
+    ]
+    assert registro.obtener("concursar_nacion").estado == "limited"
+    assert registro.obtener("inexistente") is None

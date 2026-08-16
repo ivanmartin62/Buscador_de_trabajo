@@ -5,5 +5,9 @@
   "sistemas": ["informatica", "computacion", "tecnologia de la informacion", "software", "it"],
   "ciberseguridad": ["cybersecurity", "seguridad informatica", "seguridad de la informacion", "soc", "blue team", "analista de seguridad"],
   "ingenieria": ["ingeniero", "ingeniera"],
-  "estudiante de ingenieria": ["estudiantes de ingenieria", "pasante de ingenieria", "pasantia", "pasante", "estudiante avanzado", "carrera en curso", "trainee", "becario"]
+  "estudiante de ingenieria": ["estudiantes de ingenieria", "pasante de ingenieria", "pasantia", "pasante", "estudiante avanzado", "carrera en curso", "trainee", "becario"],
+  "contador": ["contadora", "contabilidad", "contable"],
+  "enfermero": ["enfermera", "enfermeria"],
+  "administrativo": ["administrativa", "administracion", "gestion administrativa"],
+  "estudiante": ["estudiantes", "pasante", "pasantia", "becario", "becaria"]
 }

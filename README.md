@@ -32,17 +32,19 @@ una fuente oficial verificada. No se muestran datos ficticios como convocatorias
 ## Arquitectura
 
 ```text
-fuentes oficiales -> scrapers -> agregador -> normalización/deduplicación
-                                                    |
-                                                    v
-                             Repository -> Streamlit
-                              SQLite        app.py
-                              PostgreSQL (futuro)
+config/sources.json -> RegistroFuentes -> adaptadores -> agregador
+                                              |
+                                              v
+                                  normalización/deduplicación
+                                              |
+                                              v
+                              MemoriaRepository -> MotorBusqueda -> Streamlit
 ```
 
-`app.py` sólo presenta datos y ejecuta casos de uso. Cada fuente tendrá un adaptador
-independiente. La abstracción `Repository` permitirá usar SQLite localmente y migrar
-a PostgreSQL/Supabase sin incorporar SQL en la interfaz.
+`app.py` sólo presenta datos y ejecuta casos de uso. `RegistroFuentes` centraliza el
+catálogo declarativo y cada fuente activa tiene un adaptador independiente. La
+abstracción `Repository` permite mantener el modo temporal actual y migrar luego a
+PostgreSQL/Supabase sin incorporar SQL en la interfaz.
 
 ## Tecnologías
 
@@ -149,9 +151,10 @@ El campo principal está habilitado y ejecuta la búsqueda al presionar Enter o 
 botón **Buscar**. Mientras no haya un scraper activo, acepta la consulta pero informa
 que todavía no existen ofertas oficiales recopiladas.
 
-La interfaz incluye búsquedas rápidas, métricas calculadas desde los datos reales,
-filtros secundarios por provincia, tipo, estado y organismo, tres criterios de orden
-y tarjetas con detalles desplegables. El tema visual está definido mediante la
+La interfaz mantiene un buscador libre y neutral, métricas calculadas desde los datos
+reales, filtros secundarios por provincia, organismo, tipo, estado y nivel, tres
+criterios de orden y tarjetas con detalles desplegables. No ofrece accesos directos
+por profesión. El tema visual está definido mediante la
 configuración oficial de Streamlit en `.streamlit/config.toml`; los componentes
 reutilizables viven en `src/ui` y delegan la búsqueda a `MotorBusqueda`.
 
@@ -165,6 +168,18 @@ El comando consulta los adaptadores activos, normaliza y deduplica sus resultado
 muestra un resumen y termina sin guardarlos en una base de datos. No consulta fuentes
 `pending` o `limited`. Antes de activar un adaptador se verifican la URL oficial,
 `robots.txt`, las condiciones y el formato real de publicación.
+
+## APIs y métodos de obtención
+
+No hay APIs oficiales verificadas y activas en esta etapa. No se registran endpoints
+supuestos: una API, fuente JSON o RSS sólo se añade después de comprobar propiedad,
+formato, método, paginación y condiciones de uso. La fuente activa actual usa HTML
+semántico; CONCURSAR dispone de un parser preliminar, pero permanece limitada porque
+no se confirmó que el servidor entregue su DOM sin JavaScript o autenticación.
+
+Los detalles de cada fuente se leen desde `config/sources.json` mediante
+`RegistroFuentes`; las relaciones internas del buscador se mantienen separadas en
+`config/synonyms.json`.
 
 ## Fuentes soportadas
 

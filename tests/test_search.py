@@ -65,17 +65,24 @@ def test_busqueda_vacia_muestra_mas_recientes() -> None:
 
 
 @pytest.mark.parametrize(
-    ("consulta", "titulo"),
+    ("consulta", "titulo", "datos"),
     [
-        ("abogado", "Profesional Jurídico"),
-        ("procurador", "Asesor legal"),
-        ("programador", "Desarrollador de software"),
-        ("estudiante de ingeniería", "Pasantía para estudiante avanzado"),
-        ("ciberseguridad", "Analista de seguridad informática"),
-        ("sistemas", "Especialista en informática"),
+        ("abogado", "Profesional Jurídico", None),
+        ("procurador", "Asesor legal", None),
+        ("programador", "Desarrollador de software", None),
+        ("estudiante de ingeniería", "Pasantía para estudiante avanzado", None),
+        ("ciberseguridad", "Analista de seguridad informática", None),
+        ("sistemas", "Especialista en informática", None),
+        ("contador", "Profesional contable", None),
+        ("enfermero", "Licenciada en Enfermería", None),
+        ("administrativo", "Gestión administrativa", None),
+        ("ingeniero", "Profesional de Ingeniería", None),
+        ("estudiante", "Beca para estudiantes", None),
+        ("tucuman", "Puesto profesional", {"provincia": "Tucumán"}),
+        ("python", "Desarrollo", {"tecnologias": "Python"}),
     ],
 )
 def test_consultas_principales_encuentran_terminos_relacionados(
-    consulta: str, titulo: str
+    consulta: str, titulo: str, datos: dict[str, str] | None = None
 ) -> None:
-    assert MotorBusqueda().buscar(consulta, [oferta(titulo)])
+    assert MotorBusqueda().buscar(consulta, [oferta(titulo, **(datos or {}))])

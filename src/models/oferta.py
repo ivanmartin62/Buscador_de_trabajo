@@ -26,6 +26,7 @@ class OfertaEmpleo(BaseModel):
 
     id: str | None = None
     titulo: str = Field(min_length=1)
+    puesto: str | None = None
     organismo: str | None = None
     descripcion: str | None = None
     categoria: str | None = None
@@ -44,6 +45,7 @@ class OfertaEmpleo(BaseModel):
     conocimientos: str | None = None
     tecnologias: str | None = None
     nivel_gobierno: str | None = None
+    jurisdiccion: str | None = None
     cantidad_vacantes: int | None = Field(default=None, ge=0)
     fuente: str = Field(min_length=1)
     url_original: HttpUrl

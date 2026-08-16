@@ -10,6 +10,7 @@ from src.models import OfertaEmpleo
 
 PESOS = {
     "titulo": 100,
+    "puesto": 95,
     "profesion": 90,
     "especialidad": 80,
     "carrera": 75,
@@ -19,6 +20,8 @@ PESOS = {
     "tecnologias": 45,
     "descripcion": 30,
     "categoria": 25,
+    "tipo_convocatoria": 25,
+    "modalidad": 20,
     "organismo": 20,
     "localidad": 15,
     "provincia": 15,
@@ -93,8 +96,9 @@ class MotorBusqueda:
     def _terminos_relacionados(self, consulta: str, palabras: list[str]) -> set[str]:
         relacionados: set[str] = set()
         for clave, variantes in self.sinonimos.items():
-            if clave == consulta or clave in palabras:
-                relacionados.update(variantes)
+            familia = {clave, *variantes}
+            if consulta in familia or any(palabra in familia for palabra in palabras):
+                relacionados.update(familia)
         return relacionados
 
     def _evaluar(self, oferta: OfertaEmpleo, directos: list[str], relacionados: set[str]) -> ResultadoBusqueda | None:

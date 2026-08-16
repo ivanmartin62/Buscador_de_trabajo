@@ -11,6 +11,7 @@ def filtrar_resultados(
     tipo: str = "Todos",
     estado: str = "Todos",
     organismo: str = "Todos",
+    nivel: str = "Todos",
 ) -> list[ResultadoBusqueda]:
     """Aplica filtros opcionales sin alterar el ranking ni los datos de origen."""
     return [
@@ -20,6 +21,7 @@ def filtrar_resultados(
         and (tipo == "Todos" or resultado.oferta.tipo_convocatoria == tipo)
         and (estado == "Todos" or _estado_visible(resultado) == estado)
         and (organismo == "Todos" or resultado.oferta.organismo == organismo)
+        and (nivel == "Todos" or resultado.oferta.nivel_gobierno == nivel)
     ]
 
 
