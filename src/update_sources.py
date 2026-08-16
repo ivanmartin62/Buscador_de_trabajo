@@ -1,19 +1,23 @@
-"""Punto de entrada independiente para futuras actualizaciones programadas."""
+"""Actualización manual de fuentes para el modo temporal sin base de datos."""
 
+from src.services.live_offers import consultar_ofertas_oficiales
 from src.services.sources import cargar_fuentes
 
 
 def main() -> int:
-    fuentes = cargar_fuentes()
-    activas = [fuente for fuente in fuentes if fuente.estado == "active"]
+    """Consulta adaptadores activos y muestra un resumen sin persistir resultados."""
+    activas = [fuente for fuente in cargar_fuentes() if fuente.estado == "active"]
     if not activas:
-        print("0 fuentes procesadas")
-        print("No hay fuentes activas: las registradas requieren verificación técnica.")
-        print("Modo temporal: las ofertas se mostrarán en memoria y no se persistirán")
+        print("0 fuentes activas")
+        print("No hay fuentes verificadas para consultar.")
         return 0
-    # Cada fuente se asociará aquí a su adaptador sólo después de verificarla.
-    print(f"{len(activas)} fuentes activas sin adaptador registrado")
-    return 1
+
+    ofertas, errores = consultar_ofertas_oficiales()
+    print(f"{len(activas)} fuentes activas")
+    print(f"{len(ofertas)} ofertas normalizadas")
+    print(f"{len(errores)} consultas con error")
+    print("Modo temporal: los resultados no se guardaron en una base de datos")
+    return 1 if errores and not ofertas else 0
 
 
 if __name__ == "__main__":

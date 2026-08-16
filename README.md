@@ -67,6 +67,16 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+Como alternativa, los entornos Conda y los trabajos de CI pueden instalar las
+mismas dependencias mediante:
+
+```bash
+conda env update --file environment.yml --name base
+```
+
+`environment.yml` delega los paquetes Python a `requirements.txt`, que sigue siendo
+la fuente única de versiones para evitar diferencias entre Streamlit Cloud y CI.
+
 En Windows PowerShell, reemplazar la activación por:
 
 ```powershell
@@ -151,15 +161,17 @@ La recolección queda separada mediante:
 python -m src.update_sources
 ```
 
-El comando no consulta fuentes `pending`. Antes de activar un adaptador se verifican
-la URL oficial, `robots.txt`, las condiciones y el formato real de publicación.
+El comando consulta los adaptadores activos, normaliza y deduplica sus resultados,
+muestra un resumen y termina sin guardarlos en una base de datos. No consulta fuentes
+`pending` o `limited`. Antes de activar un adaptador se verifican la URL oficial,
+`robots.txt`, las condiciones y el formato real de publicación.
 
 ## Fuentes soportadas
 
 | Fuente | Jurisdicción | Método | Estado |
 |---|---|---|---|
 | Convocatorias de Argentina.gob.ar aportadas al proyecto | Nacional | HTML semántico | `active` |
-| CONCURSAR | Nacional | API/endpoint pendiente de verificación | `pending` |
+| CONCURSAR | Nacional | Portal interactivo sin API pública confirmada | `limited` |
 | Cartelera Central de Empleo Público | Nacional | Pendiente de verificación | `pending` |
 | Portal Empleo | Nacional | Pendiente de verificación | `pending` |
 | Boletín Oficial | Nacional | Pendiente de evaluación selectiva | `pending` |
@@ -176,6 +188,20 @@ páginas de convocatorias de Argentina.gob.ar aportadas al proyecto y conserva s
 texto visible en memoria. El parser usa elementos HTML semánticos y siempre enlaza
 la publicación original. Las demás fuentes continúan pendientes porque el entorno
 bloqueó con HTTP 403 su verificación externa.
+
+La URL pública de **CONCURSAR** se muestra para que el usuario pueda abrir el portal
+oficial, pero su estado `limited` significa que sus concursos todavía no alimentan
+el buscador. No hay una API pública confirmada y el proyecto no automatiza accesos
+protegidos, credenciales ni mecanismos anti-bot. La fuente sólo podrá incorporarse
+si el organismo publica HTML, JSON, RSS o una descarga pública permitida; mientras
+tanto se mantiene el enlace oficial para consulta manual.
+
+Existe un parser preliminar para el DOM descripto por el responsable del proyecto:
+reconoce `Inscripción cerrada`, `Próximo a abrir inscripción` e `Inscripción abierta`,
+además de la información de los elementos de lista y el enlace relativo de la
+tarjeta. No usa los XPath absolutos (`/html/body/...`) porque cambian ante cualquier
+ajuste visual. La fuente permanece limitada hasta confirmar que Streamlit Cloud
+recibe esas tarjetas en el HTML sin autenticación ni ejecución de JavaScript.
 
 La actualización se inicia con **Actualizar ofertas oficiales** y se cachea durante
 una hora para evitar solicitudes repetidas. Si una página contiene términos como

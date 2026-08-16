@@ -33,10 +33,11 @@ def test_registra_todas_las_jurisdicciones_argentinas() -> None:
     assert "Ciudad Autónoma de Buenos Aires" in jurisdicciones
 
 
-def test_concursar_y_fuentes_tucuman_permanecen_pendientes() -> None:
+def test_concursar_limitada_y_fuentes_tucuman_pendientes() -> None:
     fuentes = {fuente.id: fuente for fuente in cargar_fuentes()}
 
     assert fuentes["concursar_nacion"].url == "https://concursar.miportal.gob.ar/"
-    assert fuentes["concursar_nacion"].estado == "pending"
+    assert fuentes["concursar_nacion"].estado == "limited"
+    assert fuentes["concursar_nacion"].metodo == "portal_interactivo_sin_api_publica"
     assert fuentes["poder_judicial_tucuman"].url is None
     assert fuentes["ministerio_publico_fiscal_tucuman"].estado == "pending"

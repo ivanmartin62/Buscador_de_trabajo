@@ -19,6 +19,12 @@ BUSQUEDAS_RAPIDAS = (
 )
 
 
+def escapar_markdown(texto: str) -> str:
+    """Muestra texto remoto como contenido, sin interpretar Markdown embebido."""
+    caracteres = r"\`*_{}[]<>()#+-.!|"
+    return "".join(f"\\{caracter}" if caracter in caracteres else caracter for caracter in texto)
+
+
 def aplicar_estilos() -> None:
     """Añade una capa CSS pequeña sobre el tema oficial de Streamlit."""
     st.markdown(
@@ -94,15 +100,17 @@ def mostrar_tarjeta(resultado: ResultadoBusqueda) -> None:
         cabecera, tipo = st.columns([2, 1])
         cabecera.caption(f"{etiqueta_estado(oferta)} · {coincidencia}")
         tipo.caption(oferta.tipo_convocatoria or "Convocatoria")
-        st.subheader(oferta.titulo)
-        st.markdown(f"**{oferta.organismo or 'Organismo no informado'}**")
+        st.subheader(escapar_markdown(oferta.titulo))
+        organismo = escapar_markdown(oferta.organismo or "Organismo no informado")
+        st.markdown(f"**{organismo}**")
 
         ubicacion = " · ".join(
             parte for parte in (oferta.provincia, oferta.localidad) if parte
         ) or "Ubicación no informada"
         datos = st.columns(3)
-        datos[0].write(f"📍 {ubicacion}")
-        datos[1].write(f"🏛️ {oferta.nivel_gobierno or 'Nivel no informado'}")
+        datos[0].write(f"📍 {escapar_markdown(ubicacion)}")
+        nivel = escapar_markdown(oferta.nivel_gobierno or "Nivel no informado")
+        datos[1].write(f"🏛️ {nivel}")
         datos[2].write(
             "⏳ Cierra: "
             + (oferta.fecha_cierre.strftime("%d/%m/%Y") if oferta.fecha_cierre else "sin fecha")
@@ -122,10 +130,10 @@ def mostrar_tarjeta(resultado: ResultadoBusqueda) -> None:
 def _mostrar_detalles(oferta: OfertaEmpleo) -> None:
     if oferta.descripcion:
         st.markdown("**Descripción**")
-        st.write(oferta.descripcion)
+        st.write(escapar_markdown(oferta.descripcion))
     if oferta.requisitos:
         st.markdown("**Requisitos**")
-        st.write(oferta.requisitos)
+        st.write(escapar_markdown(oferta.requisitos))
     campos = {
         "Profesión": oferta.profesion,
         "Especialidad": oferta.especialidad,
@@ -134,7 +142,7 @@ def _mostrar_detalles(oferta: OfertaEmpleo) -> None:
     }
     for etiqueta, valor in campos.items():
         if valor:
-            st.write(f"**{etiqueta}:** {valor}")
+            st.write(f"**{etiqueta}:** {escapar_markdown(str(valor))}")
 
 
 def _fecha(valor: datetime | object | None) -> str | None:
